@@ -9,6 +9,7 @@ from advertisements.permissions import CanDeleteAdvertisement
 
 class AdvertisementFilter(filters.FilterSet):
     """Фильтры для объявлений."""
+
     status = filters.CharFilter(field_name='status', method='filter_status')
 
     def filter_status(self, queryset, name, value):
@@ -35,6 +36,7 @@ class AdvertisementViewSet(ModelViewSet):
             open_count = Advertisement.objects.filter(creator=user, status=AdvertisementStatusChoices.OPEN).count()
             if open_count >= 10:
                 return Response({"error": "You have reached the maximum number of open advertisements."}, status=status.HTTP_400_BAD_REQUEST)
+        
         return super().create(request, *args, **kwargs)
 
     def update(self, request, *args, **kwargs):
@@ -42,6 +44,7 @@ class AdvertisementViewSet(ModelViewSet):
         instance = self.get_object()
         if instance.creator != user:
             return Response({"error": "You don't have permission to update this advertisement."}, status=status.HTTP_403_FORBIDDEN)
+        
         return super().update(request, *args, **kwargs)
 
     def partial_update(self, request, *args, **kwargs):
@@ -49,6 +52,7 @@ class AdvertisementViewSet(ModelViewSet):
         instance = self.get_object()
         if instance.creator != user:
             return Response({"error": "You don't have permission to partially update this advertisement."}, status=status.HTTP_403_FORBIDDEN)
+        
         return super().partial_update(request, *args, **kwargs)
 
     def destroy(self, request, *args, **kwargs):
@@ -56,4 +60,13 @@ class AdvertisementViewSet(ModelViewSet):
         instance = self.get_object()
         if instance.creator != user:
             return Response({"error": "You don't have permission to delete this advertisement."}, status=status.HTTP_403_FORBIDDEN)
+        
         return super().destroy(request, *args, **kwargs)
+
+    def get_permissions(self):
+        permissions = [IsAuthenticated()]
+
+        if self.action in ['update', 'partial_update', 'destroy']:
+            permissions.append(CanDeleteAdvertisement())
+
+        return [permission() for permission in permissions]
