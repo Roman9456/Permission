@@ -75,6 +75,8 @@ TEMPLATES = [
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
+    ],
+    'DEFAULT_THROTTLE_CLASSES': [
         'api_with_restrictions.throttling.AnonThrottle',
         'api_with_restrictions.throttling.UserThrottle',
     ],
